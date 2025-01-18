@@ -21,19 +21,52 @@ function displayGameState(state) {
     console.log(`Attempts remaining: ${state.remaining}`);
 }
 
-async function playGame() {
-    const { word, category } = getRandomWord();
+function askQuestion(question) {
+    return new Promise(resolve => {
+        rl.question(question, answer => resolve(answer));
+    });
+}
+
+async function getTwoPlayerInput() {
+    clearScreen();
+    console.log('\x1b[34m=== Two Player Mode ===\x1b[0m');
+    console.log('\x1b[33mPlayer 1, please enter your word and category.\x1b[0m');
+    console.log('Player 2, no peeking!\n');
+    
+    const word = await askQuestion('Enter the word to guess: ');
+    const category = await askQuestion('Enter the category: ');
+    
+    // Clear screen to hide the word from Player 2
+    clearScreen();
+    console.log('\x1b[32mWord set! Player 2, get ready to guess!\x1b[0m');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    return { word, category };
+}
+
+async function playGame(mode = 'single') {
+    let word, category;
+    
+    if (mode === 'two-player') {
+        const input = await getTwoPlayerInput();
+        word = input.word;
+        category = input.category;
+    } else {
+        const randomWord = getRandomWord();
+        word = randomWord.word;
+        category = randomWord.category;
+    }
+    
     const game = new HangmanGame(word, category);
 
     while (!game.isGameOver()) {
         displayGameState(game.getGameState());
 
-        const guess = await new Promise(resolve => {
-            rl.question('\nEnter a letter: ', answer => resolve(answer));
-        });
+        const guess = await askQuestion('\nEnter a letter: ');
 
         if (guess.length !== 1) {
             console.log('\x1b[33mPlease enter a single letter!\x1b[0m');
+            await new Promise(resolve => setTimeout(resolve, 1000));
             continue;
         }
 
@@ -51,15 +84,20 @@ async function playGame() {
         console.log(`\x1b[31m\nGame Over! The word was: ${word}\x1b[0m`);
     }
 
-    rl.question('\nPlay again? (y/n): ', answer => {
-        if (answer.toLowerCase() === 'y') {
-            playGame();
-        } else {
-            console.log('Thanks for playing!');
-            rl.close();
-        }
-    });
+    const playAgain = await askQuestion('\nPlay again? (y/n): ');
+    if (playAgain.toLowerCase() === 'y') {
+        const gameMode = await askQuestion('Choose game mode (1 for single player, 2 for two players): ');
+        await playGame(gameMode === '2' ? 'two-player' : 'single');
+    } else {
+        console.log('Thanks for playing!');
+        rl.close();
+    }
 }
 
-console.log('\x1b[34mWelcome to Hangman!\x1b[0m');
-playGame();
+async function startGame() {
+    console.log('\x1b[34mWelcome to Hangman!\x1b[0m');
+    const gameMode = await askQuestion('Choose game mode (1 for single player, 2 for two players): ');
+    await playGame(gameMode === '2' ? 'two-player' : 'single');
+}
+
+startGame();
