@@ -15,6 +15,7 @@ function displayGameState(state) {
     clearScreen();
     console.log('\x1b[34m=== HANGMAN ===\x1b[0m');
     console.log(`Category: \x1b[36m${state.category}\x1b[0m`);
+    console.log(`Difficulty: \x1b[35m${state.difficulty.toUpperCase()}\x1b[0m`);
     console.log(state.hangman);
     console.log('\nWord:', state.display);
     console.log('\nGuessed letters:', state.guessed || 'None');
@@ -27,6 +28,24 @@ function askQuestion(question) {
     });
 }
 
+async function getDifficultyLevel() {
+    console.log('\nDifficulty Levels:');
+    console.log('1. Easy (shorter words, common letters)');
+    console.log('2. Medium (average length, mixed letters)');
+    console.log('3. Hard (longer words, uncommon letters)');
+    console.log('4. Random (any difficulty)');
+    
+    const choice = await askQuestion('\nChoose difficulty (1-4): ');
+    const difficultyMap = {
+        '1': 'easy',
+        '2': 'medium',
+        '3': 'hard',
+        '4': 'random'
+    };
+    
+    return difficultyMap[choice] || 'medium';
+}
+
 async function getTwoPlayerInput() {
     clearScreen();
     console.log('\x1b[34m=== Two Player Mode ===\x1b[0m');
@@ -36,7 +55,6 @@ async function getTwoPlayerInput() {
     const word = await askQuestion('Enter the word to guess: ');
     const category = await askQuestion('Enter the category: ');
     
-    // Clear screen to hide the word from Player 2
     clearScreen();
     console.log('\x1b[32mWord set! Player 2, get ready to guess!\x1b[0m');
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -45,19 +63,21 @@ async function getTwoPlayerInput() {
 }
 
 async function playGame(mode = 'single') {
-    let word, category;
+    let word, category, difficulty = 'medium';
     
     if (mode === 'two-player') {
         const input = await getTwoPlayerInput();
         word = input.word;
         category = input.category;
+        difficulty = await getDifficultyLevel(); // Let Player 1 set difficulty
     } else {
-        const randomWord = getRandomWord();
+        difficulty = await getDifficultyLevel();
+        const randomWord = getRandomWord(null, difficulty);
         word = randomWord.word;
         category = randomWord.category;
     }
     
-    const game = new HangmanGame(word, category);
+    const game = new HangmanGame(word, category, difficulty);
 
     while (!game.isGameOver()) {
         displayGameState(game.getGameState());
