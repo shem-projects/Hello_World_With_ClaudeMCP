@@ -1,0 +1,12 @@
+{
+  "name": "enhanced-hangman",
+  "version": "1.0.0",
+  "description": "A colorful command-line Hangman game with multiple categories",
+  "main": "src/game.js",
+  "scripts": {
+    "start": "node src/game.js"
+  },
+  "keywords": ["game", "hangman", "cli", "nodejs"],
+  "author": "Claude",
+  "license": "MIT"
+}
