@@ -8,7 +8,7 @@ class HangmanGame {
         // Adjust max attempts based on difficulty
         switch(difficulty) {
             case 'easy':
-                this.maxAttempts = 8; // More forgiving
+                this.maxAttempts = 9; // More forgiving, with better progression
                 break;
             case 'hard':
                 this.maxAttempts = 5; // More challenging
@@ -80,9 +80,25 @@ class HangmanGame {
   O   |
  /|\\  |
  / \\  |
-  |   |
+/     |
       |
-=========`  // Extra state for easy mode
+=========`,
+            `
+  +---+
+  O   |
+ /|\\  |
+ / \\  |
+/   \\ |
+      |
+=========`,
+            `
+  +---+
+  O   |
+ /|\\  |
+ / \\  |
+/ | \\ |
+      |
+=========`  // New final state for easy mode - feet spread with center line
         ];
     }
 
