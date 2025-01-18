@@ -1,9 +1,22 @@
 class HangmanGame {
-    constructor(word, category) {
+    constructor(word, category, difficulty = 'medium') {
         this.word = word.toLowerCase();
         this.category = category;
+        this.difficulty = difficulty;
         this.guessedLetters = new Set();
-        this.maxAttempts = 6;
+        
+        // Adjust max attempts based on difficulty
+        switch(difficulty) {
+            case 'easy':
+                this.maxAttempts = 8; // More forgiving
+                break;
+            case 'hard':
+                this.maxAttempts = 5; // More challenging
+                break;
+            default: // medium or random
+                this.maxAttempts = 6;
+        }
+        
         this.attempts = 0;
         this.hangmanStates = [
             `
@@ -61,7 +74,15 @@ class HangmanGame {
  / \\  |
       |
       |
-=========`
+=========`,
+            `
+  +---+
+  O   |
+ /|\\  |
+ / \\  |
+  |   |
+      |
+=========`  // Extra state for easy mode
         ];
     }
 
@@ -78,9 +99,18 @@ class HangmanGame {
         
         if (!this.word.includes(letter)) {
             this.attempts++;
+            let attemptsLeft = this.maxAttempts - this.attempts;
+            let message = '\x1b[31mWrong guess!';
+            
+            if (attemptsLeft <= 2) {
+                message += ` Be careful! Only ${attemptsLeft} attempts remaining!`;
+            } else {
+                message += ` ${attemptsLeft} attempts remaining.`;
+            }
+            
             return {
                 status: 'wrong',
-                message: `\x1b[31mWrong guess! ${this.maxAttempts - this.attempts} attempts remaining.\x1b[0m`
+                message: message + '\x1b[0m'
             };
         }
         
@@ -98,7 +128,7 @@ class HangmanGame {
     }
 
     getHangman() {
-        return this.hangmanStates[this.attempts];
+        return this.hangmanStates[Math.min(this.attempts, this.hangmanStates.length - 1)];
     }
 
     getGuessedLetters() {
@@ -125,6 +155,7 @@ class HangmanGame {
             attempts: this.attempts,
             remaining: this.maxAttempts - this.attempts,
             category: this.category,
+            difficulty: this.difficulty,
             isOver: this.isGameOver(),
             isWon: this.isWon()
         };
